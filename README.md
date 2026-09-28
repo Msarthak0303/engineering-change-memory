@@ -1,7 +1,3 @@
-Absolutely bro. Replace \*\*everything\*\* in `README.md` with this exact content:
-
-
-
 ````markdown
 
 \# Engineering Change Memory
