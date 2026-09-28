@@ -1,0 +1,26 @@
+[
+  {
+    "id": "chg-014",
+    "service": "payments-api",
+    "change_type": "database connection pool",
+    "summary": "Increased database connection pool from 50 to 120.",
+    "environment": "production",
+    "outcome": "incident",
+    "impact": "API latency increased and database CPU saturated.",
+    "root_cause": "Pool size exceeded database capacity for the workload.",
+    "resolution": "Rolled back pool size and added database saturation alerts.",
+    "lessons_learned": "Test connection-pool changes against database capacity; use a staged rollout."
+  },
+  {
+    "id": "chg-021",
+    "service": "payments-api",
+    "change_type": "database connection pool",
+    "summary": "Increased database connection pool from 50 to 70.",
+    "environment": "production",
+    "outcome": "success",
+    "impact": "No customer-visible impact.",
+    "root_cause": "",
+    "resolution": "Released through canary followed by full rollout.",
+    "lessons_learned": "A smaller increase with a canary and database saturation monitoring was safe."
+  }
+]

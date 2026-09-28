@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Engineering Change Memory</title>
+
+<style>
+:root {
+  --bg: #f6f8f7;
+  --surface: #ffffff;
+  --surface-soft: #f0f5f3;
+
+  --ink: #172321;
+  --muted: #6b7975;
+  --line: #dce5e1;
+
+  --teal-950: #123b38;
+  --teal-800: #155e59;
+  --teal-700: #17736c;
+  --teal-100: #dcefeb;
+  --teal-50: #edf8f6;
+
+  --green: #287653;
+  --green-bg: #e7f4ec;
+
+  --amber: #9a7217;
+  --amber-bg: #f8f1d9;
+
+  --red: #a64a4a;
+  --red-bg: #faeaea;
+
+  --shadow: 0 12px 32px rgba(22, 45, 42, 0.07);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  letter-spacing: -0.01em;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* NAVIGATION */
+
+.nav {
+  height: 70px;
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid var(--line);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 6vw;
+
+  position: sticky;
+  top: 0;
+  z-index: 10;
+
+  backdrop-filter: blur(12px);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+
+  font-weight: 750;
+  font-size: 16px;
+}
+
+.brandmark {
+  width: 30px;
+  height: 30px;
+
+  border-radius: 9px;
+
+  background: var(--teal-950);
+  color: white;
+
+  display: grid;
+  place-items: center;
+
+  font-weight: 800;
+}
+
+.navlinks {
+  display: flex;
+  gap: 28px;
+
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.navlinks span:first-child {
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  font-size: 13px;
+  color: var(--green);
+  font-weight: 650;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+
+  background: #3c9a70;
+
+  box-shadow: 0 0 0 4px #e2f2e9;
+}
+
+/* PAGE */
+
+main {
+  width: min(1180px, 88vw);
+
+  margin: 0 auto;
+
+  padding: 54px 0 80px;
+}
+
+.eyebrow {
+  font-size: 12px;
+
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+
+  color: var(--teal-700);
+
+  font-weight: 800;
+
+  margin-bottom: 12px;
+}
+
+h1 {
+  font-size: 42px;
+  line-height: 1.08;
+
+  letter-spacing: -0.045em;
+
+  margin: 0;
+
+  max-width: 720px;
+}
+
+.subtitle {
+  font-size: 17px;
+  line-height: 1.65;
+
+  color: var(--muted);
+
+  max-width: 650px;
+
+  margin: 16px 0 38px;
+}
+
+/* PROCESS */
+
+.flow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  color: var(--muted);
+
+  font-size: 12px;
+  font-weight: 700;
+
+  margin-bottom: 32px;
+}
+
+.flow-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  background: var(--surface);
+
+  border: 1px solid var(--line);
+
+  padding: 9px 12px;
+
+  border-radius: 999px;
+}
+
+.flow-step.active {
+  color: var(--teal-800);
+
+  background: var(--teal-50);
+
+  border-color: #bfe0d9;
+}
+
+.flow-icon {
+  width: 22px;
+  height: 22px;
+
+  border-radius: 7px;
+
+  display: grid;
+  place-items: center;
+
+  background: var(--surface-soft);
+
+  font-size: 11px;
+}
+
+.arrow {
+  color: #9aa9a5;
+}
+
+/* MAIN GRID */
+
+.grid {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1.5fr)
+    minmax(280px, 0.8fr);
+
+  gap: 22px;
+}
+
+.card {
+  background: var(--surface);
+
+  border: 1px solid var(--line);
+
+  border-radius: 18px;
+
+  box-shadow: var(--shadow);
+}
+
+.card-head {
+  padding: 24px 26px 0;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 760;
+}
+
+.card-note {
+  font-size: 13px;
+  color: var(--muted);
+
+  margin-top: 5px;
+}
+
+/* FORM */
+
+.form {
+  padding: 24px 26px 26px;
+}
+
+.row {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 14px;
+}
+
+.field {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+
+  font-size: 12px;
+
+  font-weight: 750;
+
+  color: #53635f;
+
+  margin-bottom: 7px;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+
+  border: 1px solid var(--line);
+
+  background: #fbfcfc;
+
+  color: var(--ink);
+
+  border-radius: 11px;
+
+  padding: 12px 13px;
+
+  outline: none;
+
+  transition: 0.18s;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #72aaa2;
+
+  box-shadow: 0 0 0 4px var(--teal-50);
+}
+
+textarea {
+  min-height: 88px;
+
+  resize: vertical;
+}
+
+/* BUTTONS */
+
+.primary {
+  border: 0;
+
+  background: var(--teal-800);
+
+  color: white;
+
+  border-radius: 11px;
+
+  padding: 13px 18px;
+
+  font-weight: 750;
+
+  transition: 0.18s;
+
+  box-shadow: 0 5px 14px rgba(21, 94, 89, 0.16);
+}
+
+.primary:hover {
+  background: var(--teal-950);
+
+  transform: translateY(-1px);
+}
+
+.secondary {
+  border: 1px solid var(--line);
+
+  background: white;
+
+  color: var(--ink);
+
+  border-radius: 10px;
+
+  padding: 10px 14px;
+
+  font-weight: 700;
+}
+
+/* MEMORY PANEL */
+
+.side {
+  padding: 24px 25px;
+}
+
+.side-top {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+}
+
+.number {
+  font-size: 38px;
+
+  letter-spacing: -0.05em;
+
+  font-weight: 800;
+
+  color: var(--teal-950);
+
+  margin: 24px 0 2px;
+}
+
+.small {
+  font-size: 13px;
+
+  color: var(--muted);
+}
+
+.memory-bar {
+  height: 7px;
+
+  border-radius: 10px;
+
+  background: #e8eeec;
+
+  overflow: hidden;
+
+  margin: 24px 0 20px;
+}
+
+.memory-bar span {
+  display: block;
+
+  height: 100%;
+
+  width: 72%;
+
+  background: var(--teal-700);
+
+  border-radius: 10px;
+}
+
+.memory-list {
+  display: grid;
+
+  gap: 12px;
+}
+
+.memory-item {
+  display: flex;
+
+  gap: 11px;
+
+  padding: 12px 0;
+
+  border-top: 1px solid #edf1ef;
+}
+
+.memory-item:first-child {
+  border-top: 0;
+}
+
+.mini-icon {
+  width: 30px;
+  height: 30px;
+
+  border-radius: 9px;
+
+  display: grid;
+  place-items: center;
+
+  flex: none;
+}
+
+.incident {
+  background: var(--red-bg);
+  color: var(--red);
+}
+
+.success {
+  background: var(--green-bg);
+  color: var(--green);
+}
+
+.learning {
+  background: var(--amber-bg);
+  color: var(--amber);
+}
+
+.memory-item strong {
+  font-size: 13px;
+
+  display: block;
+}
+
+.memory-item p {
+  font-size: 12px;
+
+  color: var(--muted);
+
+  margin: 3px 0 0;
+
+  line-height: 1.45;
+}
+
+/* RESULTS */
+
+.results {
+  margin-top: 22px;
+
+  display: none;
+
+  animation: rise 0.35s ease;
+}
+
+.results.show {
+  display: block;
+}
+
+.result-main {
+  padding: 27px;
+}
+
+.badge {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  border-radius: 999px;
+
+  padding: 6px 9px;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.08em;
+}
+
+.badge.green {
+  background: var(--green-bg);
+
+  color: var(--green);
+}
+
+.result-head {
+  display: flex;
+
+  justify-content: space-between;
+
+  gap: 20px;
+
+  align-items: flex-start;
+}
+
+.recommendation {
+  font-size: 25px;
+
+  line-height: 1.25;
+
+  font-weight: 780;
+
+  letter-spacing: -0.025em;
+
+  margin: 15px 0 8px;
+}
+
+.result-sub {
+  color: var(--muted);
+
+  font-size: 14px;
+
+  line-height: 1.55;
+}
+
+.stats {
+  display: flex;
+
+  gap: 10px;
+
+  flex-wrap: wrap;
+}
+
+.stat {
+  padding: 10px 12px;
+
+  background: var(--surface-soft);
+
+  border-radius: 10px;
+
+  font-size: 12px;
+
+  color: var(--muted);
+}
+
+.stat b {
+  color: var(--ink);
+
+  font-size: 15px;
+
+  margin-right: 4px;
+}
+
+.result-grid {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 16px;
+
+  margin-top: 23px;
+}
+
+.result-box {
+  border: 1px solid var(--line);
+
+  border-radius: 13px;
+
+  padding: 17px;
+}
+
+.result-box h3 {
+  font-size: 13px;
+
+  margin: 0 0 10px;
+}
+
+.result-box p,
+.result-box li {
+  font-size: 13px;
+
+  line-height: 1.55;
+
+  color: #53615e;
+}
+
+.result-box ul {
+  padding-left: 18px;
+
+  margin: 0;
+}
+
+/* EVIDENCE */
+
+.evidence {
+  margin-top: 22px;
+}
+
+.evidence h2 {
+  font-size: 14px;
+
+  margin: 0 0 12px;
+}
+
+.evidence-card {
+  padding: 15px;
+
+  border: 1px solid var(--line);
+
+  border-left: 3px solid var(--teal-700);
+
+  border-radius: 11px;
+
+  margin-bottom: 9px;
+
+  background: #fcfdfd;
+}
+
+.evidence-card strong {
+  font-size: 12px;
+}
+
+.evidence-card p {
+  font-size: 12px;
+
+  color: var(--muted);
+
+  line-height: 1.5;
+
+  margin: 5px 0 0;
+}
+
+/* OUTCOME */
+
+.outcome {
+  margin-top: 22px;
+
+  padding: 22px 26px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.notice {
+  padding: 12px 14px;
+
+  border-radius: 10px;
+
+  background: var(--amber-bg);
+
+  color: #725914;
+
+  font-size: 12px;
+
+  margin-top: 12px;
+}
+
+.loading {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 8px;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+
+  border: 2px solid rgba(255,255,255,0.35);
+
+  border-top-color: white;
+
+  border-radius: 50%;
+
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* MOBILE */
+
+@media (max-width: 800px) {
+
+  .nav {
+    padding: 0 5vw;
+  }
+
+  .navlinks {
+    display: none;
+  }
+
+  main {
+    width: 90vw;
+
+    padding-top: 38px;
+  }
+
+  h1 {
+    font-size: 34px;
+  }
+
+  .grid,
+  .result-grid,
+  .row {
+    grid-template-columns: 1fr;
+  }
+
+  .flow {
+    overflow: auto;
+
+    padding-bottom: 4px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<nav class="nav">
+
+  <div class="brand">
+    <div class="brandmark">E</div>
+    Engineering Change Memory
+  </div>
+
+  <div class="navlinks">
+    <span>Assess change</span>
+    <span>Team memory</span>
+    <span>Outcomes</span>
+  </div>
+
+  <div class="status">
+    <span class="dot"></span>
+    Hindsight connected
+  </div>
+
+</nav>
+
+
+<main>
+
+  <div class="eyebrow">
+    Engineering decision workspace
+  </div>
+
+  <h1>
+    Make the next engineering change with what your team already learned.
+  </h1>
+
+  <p class="subtitle">
+    Review an upcoming change against previous deployments, incidents,
+    fixes and lessons. The recommendation becomes more useful as the team
+    builds experience.
+  </p>
+
+
+  <!-- PROCESS -->
+
+  <div class="flow">
+
+    <div class="flow-step active">
+      <span class="flow-icon">↗</span>
+      Change
+    </div>
+
+    <span class="arrow">→</span>
+
+    <div class="flow-step">
+      <span class="flow-icon">⌕</span>
+      Recall
+    </div>
+
+    <span class="arrow">→</span>
+
+    <div class="flow-step">
+      <span class="flow-icon">✦</span>
+      Learn
+    </div>
+
+    <span class="arrow">→</span>
+
+    <div class="flow-step">
+      <span class="flow-icon">✓</span>
+      Decide
+    </div>
+
+  </div>
+
+
+  <!-- MAIN WORKSPACE -->
+
+  <section class="grid">
+
+    <!-- CHANGE FORM -->
+
+    <div class="card">
+
+      <div class="card-head">
+
+        <div>
+
+          <div class="card-title">
+            Upcoming change
+          </div>
+
+          <div class="card-note">
+            Describe the change you are about to make.
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <form class="form" id="changeForm">
+
+        <div class="row">
+
+          <div class="field">
+
+            <label>
+              Service
+            </label>
+
+            <input
+              id="service"
+              value="payments-api"
+            >
+
+          </div>
+
+
+          <div class="field">
+
+            <label>
+              Change type
+            </label>
+
+            <input
+              id="changeType"
+              value="database-connection-pool"
+            >
+
+          </div>
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            Change summary
+          </label>
+
+          <textarea id="summary">Increase database connection pool from 50 to 120</textarea>
+
+        </div>
+
+
+        <div class="row">
+
+          <div class="field">
+
+            <label>
+              Environment
+            </label>
+
+            <select id="environment">
+
+              <option>
+                production
+              </option>
+
+              <option>
+                staging
+              </option>
+
+              <option>
+                development
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <div class="field">
+
+            <label>
+              Timing
+            </label>
+
+            <select id="timing">
+
+              <option>
+                business-hours
+              </option>
+
+              <option>
+                off-hours
+              </option>
+
+              <option>
+                maintenance-window
+              </option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            Risk context
+          </label>
+
+          <input
+            id="riskContext"
+            value="Payments traffic is expected to be high during the deployment window."
+          >
+
+        </div>
+
+
+        <button
+          class="primary"
+          id="assessBtn"
+          type="submit"
+        >
+          Assess this change →
+        </button>
+
+
+        <div
+          id="error"
+          class="notice hidden"
+        ></div>
+
+      </form>
+
+    </div>
+
+
+    <!-- MEMORY -->
+
+    <aside class="card side">
+
+      <div class="side-top">
+
+        <div class="card-title">
+          Team memory
+        </div>
+
+        <span class="badge green">
+          Live
+        </span>
+
+      </div>
+
+
+      <div
+        class="number"
+        id="memoryNumber"
+      >
+        —
+      </div>
+
+      <div class="small">
+        relevant remembered experiences
+      </div>
+
+
+      <div class="memory-bar">
+        <span></span>
+      </div>
+
+
+      <div class="memory-list">
+
+        <div class="memory-item">
+
+          <div class="mini-icon incident">
+            !
+          </div>
+
+          <div>
+
+            <strong>
+              Previous incident
+            </strong>
+
+            <p>
+              Connection-pool increase caused database saturation.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="memory-item">
+
+          <div class="mini-icon success">
+            ✓
+          </div>
+
+          <div>
+
+            <strong>
+              Successful follow-up
+            </strong>
+
+            <p>
+              Canary rollout completed without elevated latency.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="memory-item">
+
+          <div class="mini-icon learning">
+            ↗
+          </div>
+
+          <div>
+
+            <strong>
+              Lesson retained
+            </strong>
+
+            <p>
+              Large changes should be staged and monitored.
+            </p>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </aside>
+
+  </section>
+
+
+  <!-- RESULTS -->
+
+  <section
+    class="card results"
+    id="results"
+  >
+
+    <div class="result-main">
+
+      <div class="result-head">
+
+        <div>
+
+          <span class="badge green">
+            Recommendation
+          </span>
+
+
+          <div
+            class="recommendation"
+            id="recommendation"
+          >
+            —
+          </div>
+
+
+          <div
+            class="result-sub"
+            id="why"
+          >
+            —
+          </div>
+
+        </div>
+
+
+        <div class="stats">
+
+          <div class="stat">
+            <b id="memoryCount">0</b>
+            memories
+          </div>
+
+          <div class="stat">
+            Uncertainty:
+            <b id="uncertainty">—</b>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="result-grid">
+
+        <div class="result-box">
+
+          <h3>
+            Rollout strategy
+          </h3>
+
+          <p id="rollout">
+            —
+          </p>
+
+        </div>
+
+
+        <div class="result-box">
+
+          <h3>
+            Safeguards
+          </h3>
+
+          <ul id="safeguards"></ul>
+
+        </div>
+
+      </div>
+
+
+      <div class="evidence">
+
+        <h2>
+          What changed the recommendation
+        </h2>
+
+        <div id="evidenceList"></div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- OUTCOME -->
+
+  <section
+    class="card outcome hidden"
+    id="outcomeSection"
+  >
+
+    <div class="card-title">
+      Record the outcome
+    </div>
+
+    <div
+      class="card-note"
+      style="margin-bottom:16px"
+    >
+      Close the learning loop so this change can improve future recommendations.
+    </div>
+
+
+    <div class="row">
+
+      <div class="field">
+
+        <label>
+          Outcome
+        </label>
+
+        <select id="outcome">
+
+          <option>
+            successful
+          </option>
+
+          <option>
+            incident occurred
+          </option>
+
+          <option>
+            rolled back
+          </option>
+
+          <option>
+            partially successful
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="field">
+
+        <label>
+          Impact
+        </label>
+
+        <input
+          id="impact"
+          value="Canary rollout completed without database saturation or elevated latency."
+        >
+
+      </div>
+
+    </div>
+
+
+    <div class="row">
+
+      <div class="field">
+
+        <label>
+          Resolution
+        </label>
+
+        <input
+          id="resolution"
+          value="Gradually expanded the canary after confirming healthy database metrics."
+        >
+
+      </div>
+
+
+      <div class="field">
+
+        <label>
+          Lesson learned
+        </label>
+
+        <input
+          id="lesson"
+          value="For large payments-api connection-pool changes, staged rollout with database monitoring is safer than an all-at-once deployment."
+        >
+
+      </div>
+
+    </div>
+
+
+    <button
+      class="primary"
+      id="recordBtn"
+    >
+      Save outcome →
+    </button>
+
+
+    <div
+      id="outcomeMsg"
+      class="notice hidden"
+    ></div>
+
+  </section>
+
+</main>
+
+
+<script>
+
+const $ = id => document.getElementById(id);
+
+let currentChangeId = null;
+
+
+function esc(value) {
+
+  return String(value ?? '').replace(
+    /[&<>"']/g,
+    match => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    }[match])
+  );
+
+}
+
+
+/* ANALYZE */
+
+$('changeForm').addEventListener(
+  'submit',
+  async event => {
+
+    event.preventDefault();
+
+    $('error').classList.add('hidden');
+
+    const button = $('assessBtn');
+
+    button.disabled = true;
+
+    button.innerHTML =
+      '<span class="loading">' +
+      '<span class="spinner"></span>' +
+      'Reviewing team memory…' +
+      '</span>';
+
+
+    try {
+
+      const response = await fetch(
+        '/analyze',
+        {
+          method: 'POST',
+
+          headers: {
+            'Content-Type': 'application/json'
+          },
+
+          body: JSON.stringify({
+
+            service: $('service').value,
+
+            change_type: $('changeType').value,
+
+            summary: $('summary').value,
+
+            environment: $('environment').value,
+
+            timing: $('timing').value,
+
+            risk_context: $('riskContext').value
+
+          })
+        }
+      );
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          'Assessment failed (' +
+          response.status +
+          ')'
+        );
+
+      }
+
+
+      const data = await response.json();
+
+
+      currentChangeId = data.change_id;
+
+
+      $('memoryNumber').textContent =
+        data.memory_count ?? '0';
+
+      $('memoryCount').textContent =
+        data.memory_count ?? '0';
+
+
+      $('recommendation').textContent =
+        data.recommendation ||
+        'No recommendation returned.';
+
+
+      $('why').textContent =
+        data.why_memory_changed_the_recommendation ||
+        'The recommendation is based on the available team memory.';
+
+
+      $('rollout').textContent =
+        data.rollout_strategy ||
+        '—';
+
+
+      $('uncertainty').textContent =
+        data.uncertainty ||
+        '—';
+
+
+      $('safeguards').innerHTML =
+        (data.safeguards || [])
+        .map(
+          item =>
+            '<li>' +
+            esc(item) +
+            '</li>'
+        )
+        .join('');
+
+
+      const evidence =
+        data.memory_evidence || [];
+
+
+      $('evidenceList').innerHTML =
+        evidence
+        .slice(0, 6)
+        .map(
+          item => `
+
+            <div class="evidence-card">
+
+              <strong>
+                ${esc(item.type || 'Remembered experience')}
+              </strong>
+
+              <p>
+                ${esc(item.summary)}
+              </p>
+
+            </div>
+
+          `
+        )
+        .join('');
+
+
+      if (!evidence.length) {
+
+        $('evidenceList').innerHTML =
+          '<div class="notice">' +
+          'No historical evidence was found for this change.' +
+          '</div>';
+
+      }
+
+
+      $('results').classList.add('show');
+
+      $('outcomeSection').classList.remove('hidden');
+
+
+      $('results').scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+
+    }
+
+    catch (error) {
+
+      $('error').textContent =
+        error.message;
+
+      $('error').classList.remove('hidden');
+
+    }
+
+    finally {
+
+      button.disabled = false;
+
+      button.textContent =
+        'Assess this change →';
+
+    }
+
+  }
+);
+
+
+/* RECORD OUTCOME */
+
+$('recordBtn').addEventListener(
+  'click',
+  async () => {
+
+    const button = $('recordBtn');
+
+    button.disabled = true;
+
+    button.textContent = 'Saving…';
+
+
+    try {
+
+      const response = await fetch(
+        '/outcome',
+        {
+          method: 'POST',
+
+          headers: {
+            'Content-Type': 'application/json'
+          },
+
+          body: JSON.stringify({
+
+            change_id: currentChangeId,
+
+            outcome: $('outcome').value,
+
+            impact: $('impact').value,
+
+            root_cause: '',
+
+            resolution: $('resolution').value,
+
+            lessons_learned: $('lesson').value
+
+          })
+        }
+      );
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          'Could not save outcome.'
+        );
+
+      }
+
+
+      $('outcomeMsg').textContent =
+        'Outcome retained. Future assessments can learn from this experience.';
+
+      $('outcomeMsg').classList.remove('hidden');
+
+    }
+
+    catch (error) {
+
+      $('outcomeMsg').textContent =
+        error.message;
+
+      $('outcomeMsg').classList.remove('hidden');
+
+    }
+
+    finally {
+
+      button.disabled = false;
+
+      button.textContent =
+        'Save outcome →';
+
+    }
+
+  }
+);
+
+</script>
+
+</body>
+</html>
