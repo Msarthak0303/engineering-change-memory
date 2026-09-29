@@ -1,5 +1,4 @@
-from contextlib import asynccontextmanager
-from pathlib import Path
+import os
 
 from dotenv import load_dotenv
 
@@ -56,7 +55,12 @@ async def frontend():
 
 @app.get("/health")
 async def health():
-    return {"status": "ok"}
+    return {
+        "status": "ok",
+        "service": "engineering-change-memory",
+        "memory_backend": os.getenv("HINDSIGHT_BASE_URL", "http://localhost:8888"),
+        "llm_model": os.getenv("LLM_MODEL", "openai/gpt-oss-120b"),
+    }
 
 
 @app.post("/analyze")
