@@ -30,32 +30,42 @@ class ChangeAgent:
             + json.dumps(change)
         )
 
-        recalled = await self.memory.recall(recall_query)
-
-        # Extract only the useful Hindsight memory fields.
-        memories = [
-            {
-                "id": item.id,
-                "text": item.text,
-                "type": item.type,
-                "context": item.context,
-                "occurred_start": item.occurred_start,
-                "occurred_end": item.occurred_end,
-                "metadata": item.metadata,
-                "tags": item.tags,
-            }
-            for item in recalled.results
-        ]
-
-        reflect_query = (
-            "Based only on the team's remembered engineering experiences, what "
-            "should the team do for this upcoming change? Identify relevant past "
-            "outcomes, what worked or failed, and concrete safeguards. Do not "
-            "invent experience. Upcoming change: "
-            + json.dumps(change)
+        memories = []
+        reflection = (
+            "No team-specific memory was available because the Hindsight service "
+            "was not reachable or not configured yet."
         )
 
-        reflection = await self.memory.reflect(reflect_query)
+        try:
+            recalled = await self.memory.recall(recall_query)
+            memories = [
+                {
+                    "id": item.id,
+                    "text": item.text,
+                    "type": item.type,
+                    "context": item.context,
+                    "occurred_start": item.occurred_start,
+                    "occurred_end": item.occurred_end,
+                    "metadata": item.metadata,
+                    "tags": item.tags,
+                }
+                for item in recalled.results
+            ]
+            if memories:
+                reflect_query = (
+                    "Based only on the team's remembered engineering experiences, what "
+                    "should the team do for this upcoming change? Identify relevant past "
+                    "outcomes, what worked or failed, and concrete safeguards. Do not "
+                    "invent experience. Upcoming change: "
+                    + json.dumps(change)
+                )
+                reflection = await self.memory.reflect(reflect_query)
+        except Exception:
+            memories = []
+            reflection = (
+                "No team-specific memory was available because the Hindsight service "
+                "was not reachable or not configured yet."
+            )
 
         prompt = f"""
 You are an engineering change advisor.
@@ -86,28 +96,39 @@ Rules:
    SDK object representations.
 """
 
-        response = await self.llm.chat.completions.create(
-            model=self.model,
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are precise and evidence-grounded.",
-                },
-                {
-                    "role": "user",
-                    "content": prompt,
-                },
-            ],
-            temperature=0.1,
-            response_format={"type": "json_object"},
-        )
-
-        result = json.loads(response.choices[0].message.content)
+        try:
+            response = await self.llm.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are precise and evidence-grounded.",
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt,
+                    },
+                ],
+                temperature=0.1,
+                response_format={"type": "json_object"},
+            )
+            result = json.loads(response.choices[0].message.content)
+        except Exception as exc:
+            result = {
+                "recommendation": "Manual review is required until the LLM and memory services are configured.",
+                "rollout_strategy": "manual-review",
+                "safeguards": [
+                    "Verify the LLM API key and endpoint are configured.",
+                    "Verify the Hindsight service is running and reachable.",
+                    "Review the change with team owners before deployment.",
+                ],
+                "evidence": [],
+                "uncertainty": f"The model could not respond: {exc}",
+                "why_memory_changed_the_recommendation": "No memory was available, so the system could not ground the recommendation in prior team outcomes.",
+            }
 
         result["change_id"] = change_id
 
-        # Memory is considered used only when Hindsight returned
-        # at least one recalled result.
         result["memory_used"] = len(memories) > 0
         result["memory_count"] = len(memories)
 
@@ -135,14 +156,20 @@ Rules:
             f"Lessons learned: {outcome.get('lessons_learned', '')}."
         )
 
-        await self.memory.retain(
-            content=content,
-            context="engineering change outcome",
-            metadata={"change_id": outcome["change_id"]},
-            tags=["engineering-change", "outcome"],
-        )
-
-        return {
-            "status": "retained",
-            "change_id": outcome["change_id"],
-        }
+        try:
+            await self.memory.retain(
+                content=content,
+                context="engineering change outcome",
+                metadata={"change_id": outcome["change_id"]},
+                tags=["engineering-change", "outcome"],
+            )
+            return {
+                "status": "retained",
+                "change_id": outcome["change_id"],
+            }
+        except Exception as exc:
+            return {
+                "status": "memory-unavailable",
+                "change_id": outcome["change_id"],
+                "message": f"The outcome could not be retained in Hindsight: {exc}",
+            }
